@@ -29,7 +29,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private val REQUEST_BLUETOOTH_PERMISSIONS = 1001
-    private val PICK_FILE_REQUEST_CODE = 1001
+    private val PICK_FILE_REQUEST_CODE = 1002
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -74,11 +74,42 @@ class MainActivity : AppCompatActivity() {
         return p
     }
     fun selectFile(view: View?) {
-        val intent = Intent(Intent.ACTION_GET_CONTENT)
-        intent.setType("*/*") // Set MIME type to all files
-        intent.addCategory(Intent.CATEGORY_OPENABLE)
-        startActivityForResult(Intent.createChooser(intent, "Select File"), PICK_FILE_REQUEST_CODE)
+
+        checkRequiredPermissions()
+
+
     }
+    private fun checkRequiredPermissions(){
+        // Check if Bluetooth is supported on the device
+        val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+        if (bluetoothAdapter == null) {
+            // Handle the case where Bluetooth is not supported on the device
+            Toast.makeText(
+                this,
+                "Bluetooth is not supported on this device",
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+
+        // Check for Bluetooth permission before executing Bluetooth functionality
+        if (hasBluetoothPermission()) {
+            val intent = Intent(Intent.ACTION_GET_CONTENT)
+            intent.setType("*/*") // Set MIME type to all files
+            intent.addCategory(Intent.CATEGORY_OPENABLE)
+            startActivityForResult(Intent.createChooser(intent, "Select File"), PICK_FILE_REQUEST_CODE)
+        } else {
+            // Request Bluetooth permission
+            ActivityCompat.requestPermissions(
+                this, arrayOf(
+                    Manifest.permission.BLUETOOTH,
+                    Manifest.permission.BLUETOOTH_ADMIN
+                ),REQUEST_BLUETOOTH_PERMISSIONS
+            )
+        }
+
+    }
+
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, @Nullable data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)

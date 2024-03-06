@@ -45,35 +45,7 @@ public class ZebraPrinter {
 
         @Override
         protected Void doInBackground(String ...contents) {
-//            JSONObject jsonData = jsonObjects[0];
-                        JSONObject jsonData = new JSONObject();
-            try {
-                jsonData.put("Khalti_ID", "9860239082");
-                jsonData.put("name", "Abhiyan Stationary Private limited");
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            String printData = contents[0];
-            String jsonString = jsonData.toString();
-            String cpclCommand = "! 0 200 200 609 1\r\n" +
-                    "TONE 0\r\n" +
-                    "ON-FEED IGNORE\r\n" +
-                    "JOURNAL\r\n" +
-                    "SETFF 10 0\r\n" +
-                    "PAGE-WIDTH 609\r\n" +
-                    "! 0 200 200 609 1\r\n" +
-                    "B QR 106 160 M 2 U 8\r\n" +
-                    "MA," + jsonString + "\r\n" +
-                    "ENDQR\r\n" +
-                    "T 5 0 10 480 Shilpa Modi\r\n" +
-                    "T 5 0 10 518 9851102500\r\n" +
-                    "FORM\r\n" +
-                    "PRINT\r\n";
-
-
-
-//            String cpclCommand = "! 0 200 200 406 1\r\r\n" + "ON-FEED IGNORE\r\r\n" + "B QR 20 20 380 380 8\r\r\n" + "M)A " + "T 0 6 137 177 TEST\r\r\n" + "PRINT\r\r\n";
-            String cpclCommand2 = "^XA^FO17,16^GB379,371,8^FS^FT65,255^A0N,135,134^FDTEST^FS^XZ";
+           String printData = contents[0];
 
             BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
             BluetoothDevice printerDevice = bluetoothAdapter.getRemoteDevice(PRINTER_MAC_ADDRESS);
@@ -85,7 +57,6 @@ public class ZebraPrinter {
                 socket.connect();
                 outputStream = socket.getOutputStream();
                 outputStream.write(printData.getBytes());
-//                outputStream.write(cpclCommand.getBytes());
 
             } catch (IOException e) {
                 e.printStackTrace();
