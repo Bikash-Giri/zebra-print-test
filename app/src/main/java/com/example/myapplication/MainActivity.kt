@@ -1,52 +1,115 @@
 package com.example.myapplication
 
+//import com.example.myapplication.ZebraPrinter.PrintTask
+
 import android.Manifest
 import android.bluetooth.BluetoothAdapter
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.widget.Toast
+import androidx.annotation.Nullable
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.navigateUp
-import androidx.navigation.ui.setupActionBarWithNavController
-//import com.example.myapplication.ZebraPrinter.PrintTask
 import com.example.myapplication.databinding.ActivityMainBinding
-import org.json.JSONException
-import org.json.JSONObject
-import java.io.File
+
+import java.io.BufferedReader
+import java.io.IOException
+import java.io.InputStreamReader
 
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
     private val REQUEST_BLUETOOTH_PERMISSIONS = 1001
-
+    private val PICK_FILE_REQUEST_CODE = 1001
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        ActivityCompat.requestPermissions(
+            this,
+            permissions(),
+            1,
+        );
 
         setSupportActionBar(binding.toolbar)
 
-        val navController = findNavController(R.id.nav_host_fragment_content_main)
-        appBarConfiguration = AppBarConfiguration(navController.graph)
-        setupActionBarWithNavController(navController, appBarConfiguration)
-        // Example JSON data
         // Example JSON data
         binding.fab.setOnClickListener { view ->
             // Print QR code with JSON data
             // Print QR code with JSON data
-            printQRCode()
+//            printQRCode()
 
         }
+    }
+
+    var storage_permissions = arrayOf(
+        Manifest.permission.WRITE_EXTERNAL_STORAGE,
+        Manifest.permission.READ_EXTERNAL_STORAGE
+    )
+
+    @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
+    var storage_permissions_33 = arrayOf(
+        Manifest.permission.READ_MEDIA_IMAGES,
+        Manifest.permission.READ_MEDIA_AUDIO,
+        Manifest.permission.READ_MEDIA_VIDEO
+    )
+
+    fun permissions(): Array<String> {
+        val p: Array<String>
+        p = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            storage_permissions_33
+        } else {
+            storage_permissions
+        }
+        return p
+    }
+    fun selectFile(view: View?) {
+        val intent = Intent(Intent.ACTION_GET_CONTENT)
+        intent.setType("*/*") // Set MIME type to all files
+        intent.addCategory(Intent.CATEGORY_OPENABLE)
+        startActivityForResult(Intent.createChooser(intent, "Select File"), PICK_FILE_REQUEST_CODE)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, @Nullable data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == PICK_FILE_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
+            val uri = data.data
+            try {
+                try {
+                    if (uri != null){
+                        contentResolver.openInputStream(uri)?.use { inputStream ->
+                            val reader = BufferedReader(InputStreamReader(inputStream))
+                            val stringBuilder = StringBuilder()
+                            var line: String?
+                            var modifiedString = ""
+                            while (reader.readLine().also { line = it } != null) {
+                                stringBuilder.append(line!!).append("\r\n")
+                            }
+                            val fileContent = stringBuilder.toString()
+                            printQRCode(fileContent)
+                        }
+                    }
+
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    Toast.makeText(this, "Error reading file", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: IOException) {
+                e.printStackTrace()
+                // Handle the exception
+            }
+        }
+
     }
 
     override fun onRequestPermissionsResult(
@@ -72,25 +135,9 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
                 if (allPermissionsGranted) {
-                  printQRCode()
+//                  printQRCode()
                     // All permissions granted, proceed with printing
                     // Call the printQRCode method here again or handle it as appropriate
-                } else {
-                    // Permissions denied, handle this case
-                    // For example, display a message to the user indicating that permissions are required for printing
-//                    Toast.makeText(
-//                        this,
-//                        "Bluetooth permissions are required for printing",
-//                        Toast.LENGTH_SHORT
-//                    ).show()
-
-                    // Request permissions again
-//                    ActivityCompat.requestPermissions(
-//                        this, arrayOf(
-//                            Manifest.permission.BLUETOOTH,
-//                            Manifest.permission.BLUETOOTH_ADMIN
-//                        ), REQUEST_BLUETOOTH_PERMISSIONS
-//                    )
                 }
             } else {
                 // Unexpected situation, grantResults length does not match requested permissions
@@ -116,13 +163,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    override fun onSupportNavigateUp(): Boolean {
-        val navController = findNavController(R.id.nav_host_fragment_content_main)
-        return navController.navigateUp(appBarConfiguration)
-                || super.onSupportNavigateUp()
-    }
-
-    fun printQRCode() {
+    fun printQRCode(printContent:String) {
 
         // Check if Bluetooth is supported on the device
         val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
@@ -138,16 +179,8 @@ class MainActivity : AppCompatActivity() {
 
         // Check for Bluetooth permission before executing Bluetooth functionality
         if (hasBluetoothPermission()) {
-            val jsonData = JSONObject()
-            try {
-                jsonData.put("Khalti_ID", "9860239082")
-                jsonData.put("name", "Abhiyan Stationary Private limited")
-            } catch (e: JSONException) {
-                e.printStackTrace()
-            }
             val zebraPrinter = ZebraPrinter(this);
-            zebraPrinter.printQRCode(jsonData)
-//            PrintTask().execute(jsonData)
+            zebraPrinter.printQRCode(printContent)
         } else {
             // Request Bluetooth permission
             ActivityCompat.requestPermissions(

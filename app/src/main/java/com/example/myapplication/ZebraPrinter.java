@@ -36,16 +36,24 @@ public class ZebraPrinter {
         this.activity = activity;
     }
 
-    public void printQRCode(JSONObject jsonData) {
+    public void printQRCode(String printData) {
 
-        new PrintTask().execute(jsonData);
+        new PrintTask().execute(printData);
     }
 
-    private class PrintTask extends AsyncTask<JSONObject, Void, Void> {
+    private class PrintTask extends AsyncTask<String, Void, Void> {
 
         @Override
-        protected Void doInBackground(JSONObject... jsonObjects) {
-            JSONObject jsonData = jsonObjects[0];
+        protected Void doInBackground(String ...contents) {
+//            JSONObject jsonData = jsonObjects[0];
+                        JSONObject jsonData = new JSONObject();
+            try {
+                jsonData.put("Khalti_ID", "9860239082");
+                jsonData.put("name", "Abhiyan Stationary Private limited");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            String printData = contents[0];
             String jsonString = jsonData.toString();
             String cpclCommand = "! 0 200 200 609 1\r\n" +
                     "TONE 0\r\n" +
@@ -76,8 +84,8 @@ public class ZebraPrinter {
                 socket = printerDevice.createRfcommSocketToServiceRecord(SERIAL_UUID);
                 socket.connect();
                 outputStream = socket.getOutputStream();
-//                outputStream.write(cpclCommand2.getBytes());
-                outputStream.write(cpclCommand.getBytes());
+                outputStream.write(printData.getBytes());
+//                outputStream.write(cpclCommand.getBytes());
 
             } catch (IOException e) {
                 e.printStackTrace();
