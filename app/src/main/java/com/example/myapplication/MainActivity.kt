@@ -19,7 +19,6 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.navigation.ui.AppBarConfiguration
 import com.example.myapplication.databinding.ActivityMainBinding
 
 import java.io.BufferedReader
@@ -35,12 +34,14 @@ class MainActivity : AppCompatActivity() {
     private var address: String = ""
     private lateinit  var addressView:TextView
     private lateinit  var editText: EditText
-    private var preferences = MySharedPreferences(this)
+    private lateinit var preferences:MySharedPreferences
+    private lateinit var zebraPrinter:ZebraPrinter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        preferences = MySharedPreferences(this)
         // Find the EditText view
         editText = binding.editText
         addressView = binding.address
@@ -48,7 +49,7 @@ class MainActivity : AppCompatActivity() {
 
         // Access the text entered by the user
         address = editText.text.toString()
-//        retrieveValue(null)
+        retrieveValue(null)
         ActivityCompat.requestPermissions(
             this,
             permissions(),
@@ -89,21 +90,30 @@ class MainActivity : AppCompatActivity() {
     }
     fun selectFile(view: View?) {
 
-        checkRequiredPermissions()
+        checkBluetoothPermission(true)
 
 
     }
 
     fun saveAddress(view: View?) {
-        preferences.saveData("address",editText.toString())
+        preferences.saveData("address",editText.text.toString())
+        retrieveValue(null,true)
 
     }
-    fun retrieveValue(view: View?) {
+    fun retrieveValue(view: View?,connectBluetooth:Boolean? = false) {
         val retrievedValue = preferences.getData("address")
+        if (retrievedValue !=null && retrievedValue != ""){
+            address = retrievedValue
         addressView.text =  "Saved Address :" + retrievedValue
+            editText.setText(address)
+        }
+        if (connectBluetooth!!){
+
+        checkBluetoothPermission(false)
+        }
 
     }
-    private fun checkRequiredPermissions(){
+    private fun checkBluetoothPermission(openFile:Boolean? = false){
         // Check if Bluetooth is supported on the device
         val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
         if (bluetoothAdapter == null) {
@@ -118,7 +128,12 @@ class MainActivity : AppCompatActivity() {
 
         // Check for Bluetooth permission before executing Bluetooth functionality
         if (hasBluetoothPermission()) {
-            chooseFile()
+
+               if (openFile!!){
+                   chooseFile()
+               }else{
+                   printQRCode("")
+               }
         } else {
             // Request Bluetooth permission
             ActivityCompat.requestPermissions(
@@ -194,11 +209,7 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
                 if (allPermissionsGranted) {
-
-
-//                  printQRCode()
-                    // All permissions granted, proceed with printing
-                    // Call the printQRCode method here again or handle it as appropriate
+                        chooseFile()
                 }
             } else {
                 // Unexpected situation, grantResults length does not match requested permissions
@@ -224,7 +235,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun printQRCode(printContent:String) {
+    fun printQRCode(printContent:String?) {
 
         // Check if Bluetooth is supported on the device
         val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
@@ -240,21 +251,22 @@ class MainActivity : AppCompatActivity() {
 
         // Check for Bluetooth permission before executing Bluetooth functionality
         if (hasBluetoothPermission()) {
-            val zebraPrinter = ZebraPrinter(this,address);
+            zebraPrinter = ZebraPrinter(this,address)
             zebraPrinter.printQRCode(printContent)
         } else {
             // Request Bluetooth permission
             ActivityCompat.requestPermissions(
                 this, arrayOf(
                     Manifest.permission.BLUETOOTH,
-                    Manifest.permission.BLUETOOTH_ADMIN
+                    Manifest.permission.BLUETOOTH_ADMIN,
+
                 ),REQUEST_BLUETOOTH_PERMISSIONS
             )
         }
     }
 
     private fun hasBluetoothPermission(): Boolean {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
             val isFistCorrect = ContextCompat.checkSelfPermission(
                 this,
                 Manifest.permission.BLUETOOTH
@@ -272,7 +284,7 @@ class MainActivity : AppCompatActivity() {
                 Manifest.permission.BLUETOOTH_ADMIN
             ) == PackageManager.PERMISSION_GRANTED)
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+       else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             ActivityCompat.requestPermissions(
                 this,
                 arrayOf(Manifest.permission.BLUETOOTH_CONNECT),
