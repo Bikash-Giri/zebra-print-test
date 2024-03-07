@@ -9,7 +9,7 @@
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:theme="@style/Theme.MyApplication.AppBarOverlay">
+        android:theme="@style/Theme.MyApplication.PopupOverlay">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
@@ -26,6 +26,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
+
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <EditText
@@ -42,6 +43,8 @@
             android:layout_width="wrap_content"
             android:layout_height="50dp"
             android:text="Choose Documents"
+            android:textColor="@color/white"
+
             android:onClick="selectFile"
             />
 
@@ -52,6 +55,8 @@
             android:layout_width="200dp"
             android:layout_height="50dp"
             android:text="Pair Address"
+            android:textColor="@color/white"
+
             android:onClick="saveAddress"
             />
 
@@ -64,14 +69,5 @@
             android:layout_height="wrap_content"/>
 
     </LinearLayout>
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_marginEnd="@dimen/fab_margin"
-        android:layout_marginBottom="16dp"
-        app:srcCompat="@android:drawable/ic_dialog_email" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

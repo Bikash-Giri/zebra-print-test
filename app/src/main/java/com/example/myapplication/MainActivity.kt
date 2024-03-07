@@ -19,7 +19,8 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.example.myapplication.databinding.ActivityMainBinding
+import com.khalti.pos.R
+import com.khalti.pos.databinding.ActivityMainBinding
 
 import java.io.BufferedReader
 import java.io.IOException
@@ -49,22 +50,15 @@ class MainActivity : AppCompatActivity() {
 
         // Access the text entered by the user
         address = editText.text.toString()
-        retrieveValue(null)
+        retrieveValue()
         ActivityCompat.requestPermissions(
             this,
             permissions(),
             1,
-        );
+        )
 
         setSupportActionBar(binding.toolbar)
 
-        // Example JSON data
-        binding.fab.setOnClickListener { view ->
-            // Print QR code with JSON data
-            // Print QR code with JSON data
-//            printQRCode()
-
-        }
     }
 
     var storage_permissions = arrayOf(
@@ -97,14 +91,14 @@ class MainActivity : AppCompatActivity() {
 
     fun saveAddress(view: View?) {
         preferences.saveData("address",editText.text.toString())
-        retrieveValue(null,true)
+        retrieveValue(true)
 
     }
-    fun retrieveValue(view: View?,connectBluetooth:Boolean? = false) {
+    fun retrieveValue(connectBluetooth: Boolean? = false) {
         val retrievedValue = preferences.getData("address")
         if (retrievedValue !=null && retrievedValue != ""){
             address = retrievedValue
-        addressView.text =  "Saved Address :" + retrievedValue
+            addressView.text =  "Saved Address :" + retrievedValue
             editText.setText(address)
         }
         if (connectBluetooth!!){
@@ -219,11 +213,11 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        menuInflater.inflate(R.menu.menu_main, menu)
-        return true
-    }
+//    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+//        // Inflate the menu; this adds items to the action bar if it is present.
+//        menuInflater.inflate(R.menu.menu_main, menu)
+//        return true
+//    }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         // Handle action bar item clicks here. The action bar will
