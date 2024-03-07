@@ -11,6 +11,8 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.Nullable
 import androidx.annotation.RequiresApi
@@ -30,11 +32,23 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private val REQUEST_BLUETOOTH_PERMISSIONS = 1001
     private val PICK_FILE_REQUEST_CODE = 1002
+    private var address: String = ""
+    private lateinit  var addressView:TextView
+    private lateinit  var editText: EditText
+    private var preferences = MySharedPreferences(this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        // Find the EditText view
+        editText = binding.editText
+        addressView = binding.address
+
+
+        // Access the text entered by the user
+        address = editText.text.toString()
+//        retrieveValue(null)
         ActivityCompat.requestPermissions(
             this,
             permissions(),
@@ -79,6 +93,16 @@ class MainActivity : AppCompatActivity() {
 
 
     }
+
+    fun saveAddress(view: View?) {
+        preferences.saveData("address",editText.toString())
+
+    }
+    fun retrieveValue(view: View?) {
+        val retrievedValue = preferences.getData("address")
+        addressView.text =  "Saved Address :" + retrievedValue
+
+    }
     private fun checkRequiredPermissions(){
         // Check if Bluetooth is supported on the device
         val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
@@ -94,10 +118,7 @@ class MainActivity : AppCompatActivity() {
 
         // Check for Bluetooth permission before executing Bluetooth functionality
         if (hasBluetoothPermission()) {
-            val intent = Intent(Intent.ACTION_GET_CONTENT)
-            intent.setType("*/*") // Set MIME type to all files
-            intent.addCategory(Intent.CATEGORY_OPENABLE)
-            startActivityForResult(Intent.createChooser(intent, "Select File"), PICK_FILE_REQUEST_CODE)
+            chooseFile()
         } else {
             // Request Bluetooth permission
             ActivityCompat.requestPermissions(
@@ -108,6 +129,13 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
+    }
+
+     private fun chooseFile(){
+        val intent = Intent(Intent.ACTION_GET_CONTENT)
+        intent.setType("*/*") // Set MIME type to all files
+        intent.addCategory(Intent.CATEGORY_OPENABLE)
+        startActivityForResult(Intent.createChooser(intent, "Select File"), PICK_FILE_REQUEST_CODE)
     }
 
 
@@ -166,6 +194,8 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
                 if (allPermissionsGranted) {
+
+
 //                  printQRCode()
                     // All permissions granted, proceed with printing
                     // Call the printQRCode method here again or handle it as appropriate
@@ -210,7 +240,7 @@ class MainActivity : AppCompatActivity() {
 
         // Check for Bluetooth permission before executing Bluetooth functionality
         if (hasBluetoothPermission()) {
-            val zebraPrinter = ZebraPrinter(this);
+            val zebraPrinter = ZebraPrinter(this,address);
             zebraPrinter.printQRCode(printContent)
         } else {
             // Request Bluetooth permission

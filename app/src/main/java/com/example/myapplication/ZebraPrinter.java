@@ -23,18 +23,21 @@ import java.util.UUID;
 public class ZebraPrinter {
 
     // Bluetooth device MAC address of the Zebra printer
-    private static final String PRINTER_MAC_ADDRESS = "84:C6:92:51:D5:C0"; // Example MAC address
+//    private static final String PRINTER_MAC_ADDRESS = "84:C6:92:51:D5:C0"; // Example MAC address
 
     // UUID for the Serial Port Profile (SPP)
     private static final UUID SERIAL_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
-    private static final int REQUEST_BLUETOOTH_PERMISSIONS = 1001;
+
+    private final String PRINTER_MAC_ADDRESS;
 
 
     private final AppCompatActivity activity;
-    public ZebraPrinter(AppCompatActivity activity) {
+    public ZebraPrinter(AppCompatActivity activity,String macAddress) {
         this.activity = activity;
+        this.PRINTER_MAC_ADDRESS = macAddress;
     }
+
 
     public void printQRCode(String printData) {
 

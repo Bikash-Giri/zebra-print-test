@@ -20,7 +20,49 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <include layout="@layout/content_main" />
+<!--    <include layout="@layout/content_main" />-->
+    <LinearLayout
+        android:id="@+id/content_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <EditText
+            android:id="@+id/editText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter your address here"
+            android:inputType="text" />
+
+        <Button
+            android:layout_marginTop="24dp"
+            android:layout_gravity="center"
+            android:id="@+id/selectFileButton"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:text="Choose Documents"
+            android:onClick="selectFile"
+            />
+
+        <Button
+            android:layout_marginTop="24dp"
+            android:layout_gravity="center"
+            android:id="@+id/address_button"
+            android:layout_width="200dp"
+            android:layout_height="50dp"
+            android:text="Save Address"
+            android:onClick="saveAddress"
+            />
+
+        <TextView
+            android:layout_gravity="center"
+            android:id="@+id/address"
+            android:layout_marginTop="24dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+    </LinearLayout>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab"
