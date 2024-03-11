@@ -119,7 +119,13 @@ class MainActivity : AppCompatActivity() {
             ).show()
             return
         }
-
+//       else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+//            ActivityCompat.requestPermissions(
+//                this,
+//                arrayOf(Manifest.permission.BLUETOOTH_CONNECT),
+//                REQUEST_BLUETOOTH_PERMISSIONS,
+//            )
+//        }
         // Check for Bluetooth permission before executing Bluetooth functionality
         if (hasBluetoothPermission()) {
 
@@ -128,12 +134,20 @@ class MainActivity : AppCompatActivity() {
                }else{
                    printQRCode("")
                }
-        } else {
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S){
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.BLUETOOTH_CONNECT,Manifest.permission.BLUETOOTH_SCAN),
+                REQUEST_BLUETOOTH_PERMISSIONS,
+            )
             // Request Bluetooth permission
+
+        }
+        else{
             ActivityCompat.requestPermissions(
                 this, arrayOf(
                     Manifest.permission.BLUETOOTH,
-                    Manifest.permission.BLUETOOTH_ADMIN
+                    Manifest.permission.BLUETOOTH_ADMIN,
                 ),REQUEST_BLUETOOTH_PERMISSIONS
             )
         }
@@ -260,15 +274,26 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun hasBluetoothPermission(): Boolean {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val isFistCorrect = ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.BLUETOOTH_SCAN
+            ) == ContextCompat.checkSelfPermission(this,Manifest.permission.BLUETOOTH_SCAN)
+            val isSecondCorrect = ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.BLUETOOTH_CONNECT
+            ) == ContextCompat.checkSelfPermission(this,Manifest.permission.BLUETOOTH_CONNECT)
+            return (ContextCompat.checkSelfPermission(
                 this,
                 Manifest.permission.BLUETOOTH
             ) == PackageManager.PERMISSION_GRANTED
-            val isSecondCorrect = ContextCompat.checkSelfPermission(
+                    && ContextCompat.checkSelfPermission(
                 this,
-                Manifest.permission.BLUETOOTH_ADMIN
-            ) == PackageManager.PERMISSION_GRANTED
+                Manifest.permission.BLUETOOTH_SCAN
+            ) == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(this,Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED)
+        }
+       else if (Build.VERSION.SDK_INT > Build.VERSION_CODES.N) {
+
             return (ContextCompat.checkSelfPermission(
                 this,
                 Manifest.permission.BLUETOOTH
@@ -277,13 +302,6 @@ class MainActivity : AppCompatActivity() {
                 this,
                 Manifest.permission.BLUETOOTH_ADMIN
             ) == PackageManager.PERMISSION_GRANTED)
-        }
-       else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(Manifest.permission.BLUETOOTH_CONNECT),
-                REQUEST_BLUETOOTH_PERMISSIONS,
-            )
         }
         return true // Permissions are implicitly granted on versions below M
 
