@@ -4,14 +4,22 @@ package com.example.myapplication
 
 import android.Manifest
 import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.graphics.Color
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
 import android.os.Build
 import android.os.Bundle
-import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.Nullable
@@ -21,7 +29,6 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.khalti.pos.R
 import com.khalti.pos.databinding.ActivityMainBinding
-
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
@@ -34,6 +41,9 @@ class MainActivity : AppCompatActivity() {
     private val PICK_FILE_REQUEST_CODE = 1002
     private var address: String = ""
     private lateinit  var addressView:TextView
+    private lateinit  var bluetoothStatus:TextView
+    private lateinit  var pairDeviceButton:Button
+    private lateinit  var statusImage:ImageView
     private lateinit  var editText: EditText
     private lateinit var preferences:MySharedPreferences
     private lateinit var zebraPrinter:ZebraPrinter
@@ -46,16 +56,33 @@ class MainActivity : AppCompatActivity() {
         // Find the EditText view
         editText = binding.editText
         addressView = binding.address
+//        bluetoothStatus = binding.bluetoothStatus
+        pairDeviceButton = binding.addressButton
+//        statusImage = binding.imageView
+//
+//        val drawable = resources.getDrawable(com.google.android.material.R.drawable.mtrl_ic_check_mark, null)
+//        drawable.setColorFilter(PorterDuffColorFilter(Color.GREEN, PorterDuff.Mode.SRC_IN))
+//        statusImage.setImageDrawable(drawable)
 
-
+        val filter = IntentFilter()
+        filter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED)
+        filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED)
+        filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED)
+        this.registerReceiver(BTReceiver, filter)
         // Access the text entered by the user
         address = editText.text.toString()
+//        bluetoothStatus.setText("Bluetooth Enabled:")
         retrieveValue()
         ActivityCompat.requestPermissions(
             this,
             permissions(),
             1,
         )
+        pairDeviceButton.setOnClickListener(View.OnClickListener {
+            saveAddress(it)
+            // place your clicking handle code here.
+        })
+
 
         setSupportActionBar(binding.toolbar)
 
@@ -90,8 +117,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun saveAddress(view: View?) {
-        preferences.saveData("address",editText.text.toString())
-        retrieveValue(true)
+        val address = editText.text.toString()
+
+        if (!BluetoothAdapter.checkBluetoothAddress(address)){
+            Toast.makeText(applicationContext,"Invalid Bluetooth Address",Toast.LENGTH_SHORT).show()
+        }else{
+            preferences.saveData("address",address)
+            retrieveValue(true)
+        }
 
     }
     fun retrieveValue(connectBluetooth: Boolean? = false) {
@@ -119,38 +152,36 @@ class MainActivity : AppCompatActivity() {
             ).show()
             return
         }
-//       else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-//            ActivityCompat.requestPermissions(
-//                this,
-//                arrayOf(Manifest.permission.BLUETOOTH_CONNECT),
-//                REQUEST_BLUETOOTH_PERMISSIONS,
-//            )
-//        }
-        // Check for Bluetooth permission before executing Bluetooth functionality
-        if (hasBluetoothPermission()) {
+        else if (bluetoothAdapter.isEnabled){
 
-               if (openFile!!){
-                   chooseFile()
-               }else{
-                   printQRCode("")
-               }
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S){
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(Manifest.permission.BLUETOOTH_CONNECT,Manifest.permission.BLUETOOTH_SCAN),
-                REQUEST_BLUETOOTH_PERMISSIONS,
-            )
-            // Request Bluetooth permission
+            if (hasBluetoothPermission()) {
 
+                if (openFile!!){
+                    chooseFile()
+                }else{
+                    printQRCode("")
+                }
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S){
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(Manifest.permission.BLUETOOTH_CONNECT,Manifest.permission.BLUETOOTH_SCAN),
+                    REQUEST_BLUETOOTH_PERMISSIONS,
+                )
+                // Request Bluetooth permission
+
+            }
+            else{
+                ActivityCompat.requestPermissions(
+                    this, arrayOf(
+                        Manifest.permission.BLUETOOTH,
+                        Manifest.permission.BLUETOOTH_ADMIN,
+                    ),REQUEST_BLUETOOTH_PERMISSIONS
+                )
+            }
+        }else{
+            Toast.makeText(applicationContext,"Please turn on your bluetooth to pair with another device ",Toast.LENGTH_SHORT).show()
         }
-        else{
-            ActivityCompat.requestPermissions(
-                this, arrayOf(
-                    Manifest.permission.BLUETOOTH,
-                    Manifest.permission.BLUETOOTH_ADMIN,
-                ),REQUEST_BLUETOOTH_PERMISSIONS
-            )
-        }
+
 
     }
 
@@ -306,5 +337,20 @@ class MainActivity : AppCompatActivity() {
         return true // Permissions are implicitly granted on versions below M
 
 
+    }
+
+    //The BroadcastReceiver that listens for bluetooth broadcasts
+    private val BTReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val action = intent.action
+            if (BluetoothDevice.ACTION_ACL_CONNECTED == action) {
+                //Do something if connected
+                Toast.makeText(applicationContext, "Bluetooth Connected", Toast.LENGTH_SHORT).show()
+            } else if (BluetoothDevice.ACTION_ACL_DISCONNECTED == action) {
+                //Do something if disconnected
+                Toast.makeText(applicationContext, "Bluetooth Disconnected", Toast.LENGTH_SHORT).show()
+            }
+            //else if...
+        }
     }
 }
